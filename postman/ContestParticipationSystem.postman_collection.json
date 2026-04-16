@@ -1,0 +1,710 @@
+{
+  "info": {
+    "name": "Contest Participation System",
+    "_postman_id": "fbf96dc0-3cbf-4df1-9d69-973b4fd26f6f",
+    "description": "Production-ready ASP.NET Core Contest Participation System API collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:5001"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "currentUserEmail",
+      "value": ""
+    },
+    {
+      "key": "currentUserRole",
+      "value": ""
+    },
+    {
+      "key": "tokenExpiresAt",
+      "value": ""
+    },
+    {
+      "key": "contestId",
+      "value": ""
+    },
+    {
+      "key": "questionId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login request succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "if (json && json.success && json.data) {",
+                  "    pm.environment.set(\"token\", json.data.token || \"\");",
+                  "    pm.environment.set(\"userId\", json.data.userId || \"\");",
+                  "    pm.environment.set(\"currentUserEmail\", json.data.email || \"\");",
+                  "    pm.environment.set(\"currentUserRole\", json.data.role || \"\");",
+                  "    pm.environment.set(\"tokenExpiresAt\", json.data.expiresAtUtc || \"\");",
+                  "",
+                  "    console.log(\"Token saved for user:\", json.data.email);",
+                  "}",
+                  "",
+                  "pm.test(\"Token saved to environment\", function () {",
+                  "    pm.expect(pm.environment.get(\"token\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@contest.local\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login As VIP User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login request succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "if (json && json.success && json.data) {",
+                  "    pm.environment.set(\"token\", json.data.token || \"\");",
+                  "    pm.environment.set(\"userId\", json.data.userId || \"\");",
+                  "    pm.environment.set(\"currentUserEmail\", json.data.email || \"\");",
+                  "    pm.environment.set(\"currentUserRole\", json.data.role || \"\");",
+                  "    pm.environment.set(\"tokenExpiresAt\", json.data.expiresAtUtc || \"\");",
+                  "}",
+                  "",
+                  "pm.test(\"Token saved to environment\", function () {",
+                  "    pm.expect(pm.environment.get(\"token\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vip@contest.local\",\n  \"password\": \"VipUser@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login As Normal User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login request succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "if (json && json.success && json.data) {",
+                  "    pm.environment.set(\"token\", json.data.token || \"\");",
+                  "    pm.environment.set(\"userId\", json.data.userId || \"\");",
+                  "    pm.environment.set(\"currentUserEmail\", json.data.email || \"\");",
+                  "    pm.environment.set(\"currentUserRole\", json.data.role || \"\");",
+                  "    pm.environment.set(\"tokenExpiresAt\", json.data.expiresAtUtc || \"\");",
+                  "}",
+                  "",
+                  "pm.test(\"Token saved to environment\", function () {",
+                  "    pm.expect(pm.environment.get(\"token\")).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@contest.local\",\n  \"password\": \"NormalUser@123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contests",
+      "item": [
+        {
+          "name": "Get Contests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contests?pageNumber=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Contest By Id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Contest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"VIP Spring Contest\",\n  \"description\": \"A premium-only contest for VIP participants.\",\n  \"startTimeUtc\": \"2026-04-16T10:00:00Z\",\n  \"endTimeUtc\": \"2026-04-16T12:00:00Z\",\n  \"contestType\": 1,\n  \"prize\": \"$500 Gift Card\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Contest",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"VIP Spring Contest - Updated\",\n  \"description\": \"Updated description for VIP contest.\",\n  \"startTimeUtc\": \"2026-04-16T10:00:00Z\",\n  \"endTimeUtc\": \"2026-04-16T13:00:00Z\",\n  \"contestType\": 1,\n  \"prize\": \"$750 Gift Card\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Contest",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "List Questions By Contest",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}",
+                "questions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}",
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Which HTTP verb is idempotent for updating an entire resource?\",\n  \"questionType\": 1,\n  \"order\": 1,\n  \"options\": [\n    { \"text\": \"POST\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"text\": \"PUT\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"text\": \"PATCH\", \"isCorrect\": false, \"sortOrder\": 3 },\n    { \"text\": \"CONNECT\", \"isCorrect\": false, \"sortOrder\": 4 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Question",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "questions",
+                "{{questionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Select all ACID properties.\",\n  \"questionType\": 2,\n  \"order\": 1,\n  \"options\": [\n    { \"text\": \"Atomicity\", \"isCorrect\": true, \"sortOrder\": 1 },\n    { \"text\": \"Consistency\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"text\": \"Isolation\", \"isCorrect\": true, \"sortOrder\": 3 },\n    { \"text\": \"Durability\", \"isCorrect\": true, \"sortOrder\": 4 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Question",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "questions",
+                "{{questionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Participation",
+      "item": [
+        {
+          "name": "Start Contest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Start contest request succeeded\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "if (json && json.success && json.data && Array.isArray(json.data.questions)) {",
+                  "    var questions = json.data.questions;",
+                  "",
+                  "    pm.collectionVariables.unset(\"question1Id\");",
+                  "    pm.collectionVariables.unset(\"question2Id\");",
+                  "    pm.collectionVariables.unset(\"question3Id\");",
+                  "    pm.collectionVariables.unset(\"question1Option1Id\");",
+                  "    pm.collectionVariables.unset(\"question1Option2Id\");",
+                  "    pm.collectionVariables.unset(\"question1Option3Id\");",
+                  "    pm.collectionVariables.unset(\"question1Option4Id\");",
+                  "    pm.collectionVariables.unset(\"question2Option1Id\");",
+                  "    pm.collectionVariables.unset(\"question2Option2Id\");",
+                  "    pm.collectionVariables.unset(\"question2Option3Id\");",
+                  "    pm.collectionVariables.unset(\"question2Option4Id\");",
+                  "",
+                  "    questions.forEach(function (question, index) {",
+                  "        var questionIndex = index + 1;",
+                  "        pm.collectionVariables.set(\"question\" + questionIndex + \"Id\", question.id || \"\");",
+                  "",
+                  "        if (Array.isArray(question.options)) {",
+                  "            question.options.forEach(function (option, optionIndex) {",
+                  "                pm.collectionVariables.set(",
+                  "                    \"question\" + questionIndex + \"Option\" + (optionIndex + 1) + \"Id\",",
+                  "                    option.id || \"\"",
+                  "                );",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "",
+                  "    if (questions.length > 0) {",
+                  "        pm.collectionVariables.set(\"questionId\", questions[0].id || \"\");",
+                  "    }",
+                  "",
+                  "    console.log(\"Stored\", questions.length, \"question ids in collection variables.\");",
+                  "}",
+                  "",
+                  "pm.test(\"Question ids captured\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.questions.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}/participation/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}",
+                "participation",
+                "start"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Contest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}/participation/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}",
+                "participation",
+                "submit"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"{{questionId}}\",\n      \"selectedOptionIds\": [\n        \"00000000-0000-0000-0000-000000000001\"\n      ]\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "item": [
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contests/{{contestId}}/leaderboard?pageNumber=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contests",
+                "{{contestId}}",
+                "leaderboard"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "My History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/history?pageNumber=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}",
+                "role"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": 2\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

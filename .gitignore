@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+.dotnet/
+.nuget/packages/
+.temp/
+.localappdata/
+.appdata/
