@@ -47,28 +47,25 @@ public class ParticipationService : IParticipationService
 
         Participation? participation = null;
 
-        await _participationRepository.ExecuteInTransactionAsync(async innerToken =>
+        participation = await _participationRepository.GetByUserAndContestAsync(userId, contestId, cancellationToken);
+        if (participation is not null && participation.Status == ParticipationStatus.Submitted)
         {
-            participation = await _participationRepository.GetByUserAndContestAsync(userId, contestId, innerToken);
-            if (participation is not null && participation.Status == ParticipationStatus.Submitted)
-            {
-                throw new ConflictException("Contest has already been submitted.");
-            }
+            throw new ConflictException("Contest has already been submitted.");
+        }
 
-            if (participation is null)
+        if (participation is null)
+        {
+            participation = new Participation
             {
-                participation = new Participation
-                {
-                    UserId = userId,
-                    ContestId = contestId,
-                    StartedAtUtc = now,
-                    Status = ParticipationStatus.Started
-                };
+                UserId = userId,
+                ContestId = contestId,
+                StartedAtUtc = now,
+                Status = ParticipationStatus.Started
+            };
 
-                await _participationRepository.AddAsync(participation, innerToken);
-                await _participationRepository.SaveChangesAsync(innerToken);
-            }
-        }, cancellationToken);
+            await _participationRepository.AddAsync(participation, cancellationToken);
+            await _participationRepository.SaveChangesAsync(cancellationToken);
+        }
 
         return new StartContestResponseDto
         {
@@ -171,28 +168,31 @@ public class ParticipationService : IParticipationService
 
         Participation? participation = null;
 
-        await _participationRepository.ExecuteInTransactionAsync(async innerToken =>
+        participation = await _participationRepository.GetForSubmissionAsync(userId, contestId, cancellationToken)
+            ?? throw new BadRequestException("Contest must be started before submitting.");
+
+        if (participation.SubmittedAtUtc.HasValue || participation.Status == ParticipationStatus.Submitted)
         {
-            participation = await _participationRepository.GetForSubmissionAsync(userId, contestId, innerToken)
-                ?? throw new BadRequestException("Contest must be started before submitting.");
+            throw new ConflictException("Contest has already been submitted.");
+        }
 
-            if (participation.SubmittedAtUtc.HasValue || participation.Status == ParticipationStatus.Submitted)
-            {
-                throw new ConflictException("Contest has already been submitted.");
-            }
+        if (participation.Answers.Count > 0)
+        {
+            await _participationRepository.RemoveAnswersAsync(participation.Answers.ToArray(), cancellationToken);
+        }
 
-            participation.Answers.Clear();
-            foreach (var answerEntity in answerEntities)
-            {
-                participation.Answers.Add(answerEntity);
-            }
+        foreach (var answerEntity in answerEntities)
+        {
+            answerEntity.ParticipationId = participation.Id;
+        }
 
-            participation.Score = totalScore;
-            participation.SubmittedAtUtc = now;
-            participation.Status = ParticipationStatus.Submitted;
+        await _participationRepository.AddAnswersAsync(answerEntities, cancellationToken);
 
-            await _participationRepository.SaveChangesAsync(innerToken);
-        }, cancellationToken);
+        participation.Score = totalScore;
+        participation.SubmittedAtUtc = now;
+        participation.Status = ParticipationStatus.Submitted;
+
+        await _participationRepository.SaveChangesAsync(cancellationToken);
 
         return new SubmitContestResponseDto
         {

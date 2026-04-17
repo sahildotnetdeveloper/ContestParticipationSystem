@@ -1,4 +1,3 @@
-using System.Data;
 using ContestParticipationSystem.Application.Common;
 using ContestParticipationSystem.Application.DTOs.Leaderboard;
 using ContestParticipationSystem.Application.DTOs.Users;
@@ -24,6 +23,11 @@ public class ParticipationRepository : IParticipationRepository
         await _dbContext.Participations.AddAsync(participation, cancellationToken);
     }
 
+    public async Task AddAnswersAsync(IEnumerable<ParticipationAnswer> answers, CancellationToken cancellationToken)
+    {
+        await _dbContext.ParticipationAnswers.AddRangeAsync(answers, cancellationToken);
+    }
+
     public Task<Participation?> GetByUserAndContestAsync(Guid userId, Guid contestId, CancellationToken cancellationToken)
     {
         return _dbContext.Participations
@@ -40,6 +44,12 @@ public class ParticipationRepository : IParticipationRepository
             .SingleOrDefaultAsync(
                 participation => participation.UserId == userId && participation.ContestId == contestId,
                 cancellationToken);
+    }
+
+    public Task RemoveAnswersAsync(IEnumerable<ParticipationAnswer> answers, CancellationToken cancellationToken)
+    {
+        _dbContext.ParticipationAnswers.RemoveRange(answers);
+        return Task.CompletedTask;
     }
 
     public async Task<PagedResult<LeaderboardEntryDto>> GetLeaderboardAsync(Guid contestId, int pageNumber, int pageSize, CancellationToken cancellationToken)
@@ -138,30 +148,24 @@ public class ParticipationRepository : IParticipationRepository
         };
     }
 
-    public async Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
-    {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
-        try
-        {
-            await action(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
-    }
-
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("A concurrent update was detected. Please retry the request.");
+            var entityNames = exception.Entries
+                .Select(entry => entry.Metadata.ClrType.Name)
+                .Distinct()
+                .ToArray();
+
+            var entitySummary = entityNames.Length > 0
+                ? string.Join(", ", entityNames)
+                : "unknown entities";
+
+            throw new ConflictException($"Concurrency issue while saving: {entitySummary}.");
         }
         catch (DbUpdateException exception) when (exception.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true)
         {
